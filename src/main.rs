@@ -4,7 +4,7 @@ use owo_colors::OwoColorize;
 use serde::Serialize;
 use std::{
     fs::{self},
-    path::{Path, PathBuf},
+    path::{Path, PathBuf}, vec::IntoIter,
 };
 use strum::Display;
 use tabled::{
@@ -42,6 +42,10 @@ struct CLI {
     path: Option<PathBuf>,
     #[arg(short, long)]
     json: bool,
+    #[arg(short, long)]
+    all: bool,
+    #[arg(short = 'o', long = "only-hidden")]
+    hiddenonly: bool,
 }
 
 fn main() {
@@ -58,7 +62,7 @@ fn main() {
                     serde_json::to_string(&get_files).unwrap_or("Cannot Parse JSON".to_string())
                 )
             } else {
-                print_table(&path);
+                print_table(&path, cli.all, cli.hiddenonly);
             }
         } else {
             println!("{}", "Path does not exist".red());
@@ -81,8 +85,15 @@ fn get_files(path: &Path) -> Vec<FileEntry> {
     data
 }
 
-fn print_table(path: &Path) {
-    let get_files = get_files(&path);
+fn print_table(path: &Path, all:bool, hiddenonly: bool) {
+    let mut get_files = get_files(&path);
+    if hiddenonly {
+        let get_files_iter: IntoIter<FileEntry> = get_files.into_iter();
+        get_files = only_hidden(get_files_iter);
+    } else if !all {
+        let get_files_iter: IntoIter<FileEntry> = get_files.into_iter();
+        get_files = leave_hidden(get_files_iter);
+    }
     let mut table = Table::new(&get_files);
     table.with(Style::rounded());
     table.modify(Columns::first(), Color::FG_BRIGHT_CYAN);
@@ -147,4 +158,14 @@ fn map_file_data(file: fs::DirEntry, data: &mut Vec<FileEntry>) {
 fn map_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, dir_index: &mut usize) {
     let re_arg = map_dir_data(file, data, dir_index);
     map_file_data(re_arg, data);
+}
+
+fn leave_hidden<I>(data: I) -> Vec<FileEntry> where I: Iterator<Item = FileEntry> {
+    let res: Vec<FileEntry> = data.filter(|x| !x.name.starts_with(".")).collect();
+    return res;
+}
+
+fn only_hidden<I>(data: I) -> Vec<FileEntry> where I: Iterator<Item = FileEntry> {
+    let res: Vec<FileEntry> = data.filter(|x| x.name.starts_with(".")).collect();
+    return res;
 }
