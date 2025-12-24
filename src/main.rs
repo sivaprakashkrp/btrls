@@ -37,14 +37,21 @@ struct FileEntry {
 }
 
 #[derive(Debug, Parser)]
-#[command(version, about, long_about = "A better ls command")]
+#[command(
+    version,
+    author,
+    about = "A tabled ls command",
+    long_about = "A tabled ls command developed with Rust. Also has a option to export the contents of the directory in JSON format",
+    help_template = "{bin} {version}\nDeveloped By: {author}\n\n{about}\n\nUsage:\n\t{usage}\n\n{all-args}",
+    author = "Sivaprakash P"
+)]
 struct CLI {
     path: Option<PathBuf>,
-    #[arg(short, long)]
+    #[arg(short, long, help = "Presents the current directory in JSON format")]
     json: bool,
-    #[arg(short, long)]
+    #[arg(short, long, help = "Displays all the files and directories (including hidden ones)")]
     all: bool,
-    #[arg(short = 'o', long = "only-hidden")]
+    #[arg(short = 'o', long = "only-hidden", help = "Displays the hidden files and directories only")]
     hiddenonly: bool,
 }
 
@@ -93,6 +100,10 @@ fn print_table(path: &Path, all:bool, hiddenonly: bool) {
     } else if !all {
         let get_files_iter: IntoIter<FileEntry> = get_files.into_iter();
         get_files = leave_hidden(get_files_iter);
+    }
+    if get_files.len() == 0 {
+        println!("No Files or Directories found!");
+        return;
     }
     let mut table = Table::new(&get_files);
     table.with(Style::rounded());
