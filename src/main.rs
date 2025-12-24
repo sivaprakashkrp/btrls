@@ -101,6 +101,10 @@ fn print_table(path: &Path, all:bool, hiddenonly: bool) {
         let get_files_iter: IntoIter<FileEntry> = get_files.into_iter();
         get_files = leave_hidden(get_files_iter);
     }
+    if get_files.len() == 0 {
+        println!("No Files or Directories found!");
+        return;
+    }
     let mut table = Table::new(&get_files);
     table.with(Style::rounded());
     table.modify(Columns::first(), Color::FG_BRIGHT_CYAN);
