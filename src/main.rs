@@ -1,10 +1,9 @@
 use chrono::{DateTime, Utc};
-use clap::Parser;
+use clap::{Parser};
 use owo_colors::OwoColorize;
 use serde::Serialize;
 use std::{
-    fs::{self},
-    path::{Path, PathBuf}, vec::IntoIter,
+    fs::{self}, path::{Path, PathBuf}, vec::IntoIter
 };
 use strum::Display;
 use tabled::{
@@ -53,6 +52,10 @@ struct CLI {
     all: bool,
     #[arg(short = 'o', long = "only-hidden", help = "Displays the hidden files and directories only")]
     hiddenonly: bool,
+    #[arg(short, long, help = "Displays the sub-directories and files recursively")]
+    recursive: bool,
+    #[arg(short = 'q', long = "recursive-hidden", help = "Displays the all sub-directories and files (including hidden ones) recursively")]
+    recursive_hidden: bool,
 }
 
 fn main() {
@@ -68,6 +71,9 @@ fn main() {
                     "{}",
                     serde_json::to_string(&get_files).unwrap_or("Cannot Parse JSON".to_string())
                 )
+            } else if cli.recursive || cli.recursive_hidden {
+                println!("{}", path.display());
+                recursive_listing(path, 0, String::from(""), cli.recursive_hidden);
             } else {
                 print_table(&path, cli.all, cli.hiddenonly);
             }
@@ -179,4 +185,24 @@ fn leave_hidden<I>(data: I) -> Vec<FileEntry> where I: Iterator<Item = FileEntry
 fn only_hidden<I>(data: I) -> Vec<FileEntry> where I: Iterator<Item = FileEntry> {
     let res: Vec<FileEntry> = data.filter(|x| x.name.starts_with(".")).collect();
     return res;
+}
+
+fn recursive_listing(path: PathBuf, count: u8, head: String, show_hidden: bool) {
+    if let Ok(read_dir) = fs::read_dir(&path) {
+        for entry in read_dir {
+            if let Ok(file) = entry {
+                if !show_hidden && file.file_name().into_string().unwrap_or("default".into()).starts_with(".") {
+                    continue;
+                }
+                if let Ok(meta) = fs::metadata(file.path()) {
+                    println!("{}├──> {}", head, file.file_name().into_string().unwrap_or("Cannot unwrap filename".into()));
+                    if meta.is_dir() {
+                        if count <= 1 {
+                            recursive_listing(file.path(), count + 1, format!("{}│    ", head), show_hidden);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
