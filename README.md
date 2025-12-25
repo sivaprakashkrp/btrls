@@ -54,6 +54,24 @@ Displays all the files and directories (including hidden ones)
 ```
 Displays the hidden files and directories only
 
+### List files and directories recursively
+```bash
+-r, --recursive
+```
+Displays the sub-directories and files recursively.
+
+### List all files and directories (including hidden) recursively
+```bash
+-q, --recursive-hidden
+```
+Displays the all sub-directories and files (including hidden ones) recursively
+
+### Setting Depth for Recursive Listings
+```bash
+-d <VALUE>, --depth <VALUE>
+```
+Sets the recursion depth for the recursive listings. The default value of depth is 1.
+
 ### Help
 ```bash
 -h, --help

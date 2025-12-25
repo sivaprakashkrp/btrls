@@ -56,6 +56,8 @@ struct CLI {
     recursive: bool,
     #[arg(short = 'q', long = "recursive-hidden", help = "Displays the all sub-directories and files (including hidden ones) recursively")]
     recursive_hidden: bool,
+    #[arg(short, long, default_value_t = 1, help = "Providing recursive depth for recursive depth of files and folders")]
+    depth: u32,
 }
 
 fn main() {
@@ -73,7 +75,7 @@ fn main() {
                 )
             } else if cli.recursive || cli.recursive_hidden {
                 println!("{}", path.display());
-                recursive_listing(path, 0, String::from(""), cli.recursive_hidden);
+                recursive_listing(path, cli.depth, 0, String::from(""), cli.recursive_hidden);
             } else {
                 print_table(&path, cli.all, cli.hiddenonly);
             }
@@ -187,7 +189,7 @@ fn only_hidden<I>(data: I) -> Vec<FileEntry> where I: Iterator<Item = FileEntry>
     return res;
 }
 
-fn recursive_listing(path: PathBuf, count: u8, head: String, show_hidden: bool) {
+fn recursive_listing(path: PathBuf, depth:u32, count: u32, head: String, show_hidden: bool) {
     if let Ok(read_dir) = fs::read_dir(&path) {
         for entry in read_dir {
             if let Ok(file) = entry {
@@ -197,8 +199,8 @@ fn recursive_listing(path: PathBuf, count: u8, head: String, show_hidden: bool) 
                 if let Ok(meta) = fs::metadata(file.path()) {
                     println!("{}├──> {}", head, file.file_name().into_string().unwrap_or("Cannot unwrap filename".into()));
                     if meta.is_dir() {
-                        if count <= 1 {
-                            recursive_listing(file.path(), count + 1, format!("{}│    ", head), show_hidden);
+                        if count < depth {
+                            recursive_listing(file.path(), depth, count + 1, format!("{}│    ", head), show_hidden);
                         }
                     }
                 }
