@@ -65,3 +65,7 @@ Print help (see a summary with `-h`, detailed help with `--help`)
 -V, --version
 ```  
 Prints version of btrls
+
+---
+
+*This project was started as a follow along to the video [Code Your Own CLI With Rust - Jonkero](https://youtu.be/5UA9UWWAagc?si=XNrHb2mqfUbid-dE).*
