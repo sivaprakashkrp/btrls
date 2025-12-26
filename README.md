@@ -1,5 +1,5 @@
 # `btrls`
-A tabled `ls` command developed in Rust with color-coded columns. The basic functionality has been implemented in the release `v0.2.0`. 
+A tabled `ls` command developed in Rust with color-coded columns. The basic functionality of the `ls` command has been implemented in the release `v1.0.0`. 
 
 With `btrls` you can see the files and directories in a tabled format with the option to export the details of files and directories as **JSON** with the `--json` or `-j` flag.
 
@@ -14,12 +14,12 @@ Then you can find the application in the `<Path-to-repo>/target/release/btrls` o
 
 ## Installation
 Please refer to the releases section for the below mentioned files.
-### For Windows
-If you are on a Windows Machine, you can download the `btrls-v0.2.0.exe` executable file and add the location of the downloaded application to the System or User Environment Variables.
+### For Windows Systems
+If you are on a Windows Machine, you can download the `btrls-v1.0.0.exe` executable file and add the location of the downloaded application to the System or User Environment Variables.
 
 And you can also compile the application from source by either downloading an archive or cloning the repository then building the application with `cargo`.
 
-### For Unix/Linux
+### For Unix/Linux Systems
 If you are on a Linux or Mac Machine, you can download any of the archives from the releases or clone the repository and run the `install.sh` script.
 
 **Note**: Make sure that your system already has `rustc` and `cargo` installed. 
