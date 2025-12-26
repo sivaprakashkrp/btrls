@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use std::cmp;
-use clap::{Parser};
+use clap::{Parser, builder::OsStr};
 use owo_colors::OwoColorize;
 use serde::Serialize;
 use std::{
@@ -79,6 +79,12 @@ fn main() {
             } else if cli.recursive || cli.recursive_hidden {
                 println!("{}", path.display());
                 recursive_listing(path, cli.depth, 0, String::from(""), cli.recursive_hidden);
+            } else if cli.file_info {
+                let data = getting_file_info(&path);
+                match data {
+                    Ok(res) => print_table(res),
+                    Err(msg) => println!("{msg}")
+                }
             } else {
                 let data = get_data(&path, cli.all, cli.hiddenonly);
                 match data {
@@ -94,6 +100,7 @@ fn main() {
     }
 }
 
+// To convert the length of the files from Byte information to respective file length unit
 pub fn convert(num: f64) -> String {
   let negative = if num.is_sign_positive() { "" } else { "-" };
   let num = num.abs();
@@ -121,6 +128,7 @@ fn get_files(path: &Path) -> Vec<FileEntry> {
     data
 }
 
+// To get the data about the files and directories in the given path
 fn get_data(path: &Path, all:bool, hiddenonly: bool) -> Result<Vec<FileEntry>, String> {
     let mut get_files = get_files(&path);
     if hiddenonly {
@@ -136,6 +144,7 @@ fn get_data(path: &Path, all:bool, hiddenonly: bool) -> Result<Vec<FileEntry>, S
     return Ok(get_files);
 }
 
+// To print the table to display
 fn print_table(get_files: Vec<FileEntry>) {
     let mut table = Table::new(&get_files);
     table.with(Style::rounded());
@@ -150,6 +159,7 @@ fn print_table(get_files: Vec<FileEntry>) {
     println!("{}", table);
 }
 
+// To collect data about directories and map them into a vector so that they can be displayed in table
 fn map_dir_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, dir_index: &mut usize) -> fs::DirEntry {
     if let Ok(meta) = fs::metadata(&file.path()) {
         if meta.is_dir() {
@@ -175,6 +185,7 @@ fn map_dir_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, dir_index: &mut u
     file
 }
 
+// To collect data about files and map them into a vector so that they can be displayed in table
 fn map_file_data(file: fs::DirEntry, data: &mut Vec<FileEntry>) {
     if let Ok(meta) = fs::metadata(&file.path()) {
         if !meta.is_dir() {
@@ -198,21 +209,26 @@ fn map_file_data(file: fs::DirEntry, data: &mut Vec<FileEntry>) {
     }
 }
 
+// Calling map_dir_data and map_file_data
+// This order of calling the methods is what displays Directories first, then the files in the table
 fn map_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, dir_index: &mut usize) {
     let re_arg = map_dir_data(file, data, dir_index);
     map_file_data(re_arg, data);
 }
 
+// To omit hidden files from the Vector
 fn leave_hidden<I>(data: I) -> Vec<FileEntry> where I: Iterator<Item = FileEntry> {
     let res: Vec<FileEntry> = data.filter(|x| !x.name.starts_with(".")).collect();
     return res;
 }
 
+// To have only the hidden files in the Vector
 fn only_hidden<I>(data: I) -> Vec<FileEntry> where I: Iterator<Item = FileEntry> {
     let res: Vec<FileEntry> = data.filter(|x| x.name.starts_with(".")).collect();
     return res;
 }
 
+// A function to print the structure of the data recursively
 fn recursive_listing(path: PathBuf, depth:u32, count: u32, head: String, show_hidden: bool) {
     if let Ok(read_dir) = fs::read_dir(&path) {
         for entry in read_dir {
@@ -233,7 +249,27 @@ fn recursive_listing(path: PathBuf, depth:u32, count: u32, head: String, show_hi
     }
 }
 
-fn getting_file_info(path: &Path) -> Vec<FileEntry> {
-    let mut res: Vec<FileEntry> = get_files(path);
-    res
+// To get the data of a single file
+fn getting_file_info(path: &Path) -> Result<Vec<FileEntry>, String> {
+    let mut res: Vec<FileEntry> = Vec::default();
+    if let Ok(meta) = fs::metadata(path) {
+        res.push(FileEntry {
+            name: path.file_name().unwrap_or(&OsStr::from("File Not Found!")).to_owned().into_string().expect("File Not Found!"),
+            e_type: EntryType::File,
+            len_bytes: convert(meta.len() as f64),
+            modified: if let Ok(mod_time) = meta.modified() {
+                let date: DateTime<Utc> = mod_time.into();
+                format!("{}", date.format("%a %b %e %Y"))
+            } else {
+                String::default()
+            },
+            read_only: meta.permissions().readonly(),
+            hidden: path.file_name().unwrap_or(&OsStr::from("File Not Found!")).to_owned().into_string().expect("File Not Found!").starts_with(".")
+        })
+    }
+    if res[0].name == "File Not Found!" {
+        return Err(String::from("No such file found"));
+    } else {
+        return Ok(res);
+    }
 }

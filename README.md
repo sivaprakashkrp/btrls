@@ -72,6 +72,12 @@ Displays the all sub-directories and files (including hidden ones) recursively
 ```
 Sets the recursion depth for the recursive listings. The default value of depth is 1.
 
+### List the attributes of a single file
+```bash
+-f, --file-info
+```
+Provides information about a single file
+
 ### Help
 ```bash
 -h, --help
