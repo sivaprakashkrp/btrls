@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Local};
 use std::cmp;
 use clap::{Parser, builder::OsStr};
 use owo_colors::OwoColorize;
@@ -62,6 +62,9 @@ struct CLI {
     #[arg(short = 'f', long = "file-info", help = "Provides information about a file")]
     file_info: bool,
 }
+
+// Files that start with "." but are not considered hidden
+const SPECIAL_FILES: [&str; 1] = [".gitignore"];
 
 fn main() {
     let cli = CLI::parse();
@@ -171,8 +174,8 @@ fn map_dir_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, dir_index: &mut u
                 e_type: EntryType::Dir,
                 len_bytes: convert(meta.len() as f64),
                 modified: if let Ok(mod_time) = meta.modified() {
-                    let date: DateTime<Utc> = mod_time.into();
-                    format!("{}", date.format("%a %b %e %Y"))
+                    let date: DateTime<Local> = mod_time.into();
+                    format!("{}", date.format("%b %e %Y %H:%M"))
                 } else {
                     String::default()
                 },
@@ -197,8 +200,8 @@ fn map_file_data(file: fs::DirEntry, data: &mut Vec<FileEntry>) {
                 e_type: EntryType::File,
                 len_bytes: convert(meta.len() as f64),
                 modified: if let Ok(mod_time) = meta.modified() {
-                    let date: DateTime<Utc> = mod_time.into();
-                    format!("{}", date.format("%a %b %e %Y"))
+                    let date: DateTime<Local> = mod_time.into();
+                    format!("{}", date.format("%b %e %Y %H:%M"))
                 } else {
                     String::default()
                 },
@@ -218,13 +221,13 @@ fn map_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, dir_index: &mut usize
 
 // To omit hidden files from the Vector
 fn leave_hidden<I>(data: I) -> Vec<FileEntry> where I: Iterator<Item = FileEntry> {
-    let res: Vec<FileEntry> = data.filter(|x| !x.name.starts_with(".")).collect();
+    let res: Vec<FileEntry> = data.filter(|x| !x.hidden || SPECIAL_FILES.contains(&x.name.as_str())).collect();
     return res;
 }
 
 // To have only the hidden files in the Vector
 fn only_hidden<I>(data: I) -> Vec<FileEntry> where I: Iterator<Item = FileEntry> {
-    let res: Vec<FileEntry> = data.filter(|x| x.name.starts_with(".")).collect();
+    let res: Vec<FileEntry> = data.filter(|x| x.hidden).collect();
     return res;
 }
 
@@ -258,8 +261,8 @@ fn getting_file_info(path: &Path) -> Result<Vec<FileEntry>, String> {
             e_type: EntryType::File,
             len_bytes: convert(meta.len() as f64),
             modified: if let Ok(mod_time) = meta.modified() {
-                let date: DateTime<Utc> = mod_time.into();
-                format!("{}", date.format("%a %b %e %Y"))
+                let date: DateTime<Local> = mod_time.into();
+                format!("{}", date.format("%b %e %Y %H:%M"))
             } else {
                 String::default()
             },
