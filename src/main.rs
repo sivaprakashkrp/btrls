@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use std::cmp;
 use clap::{Parser};
 use owo_colors::OwoColorize;
 use serde::Serialize;
@@ -26,7 +27,7 @@ struct FileEntry {
     #[tabled{rename="Name"}]
     name: String,
     #[tabled{rename="Size"}]
-    len_bytes: u64,
+    len_bytes: String,
     #[tabled{rename="Modified_At"}]
     modified: String,
     #[tabled{rename="Read_Only"}]
@@ -58,6 +59,8 @@ struct CLI {
     recursive_hidden: bool,
     #[arg(short, long, default_value_t = 1, help = "Providing recursive depth for recursive depth of files and folders")]
     depth: u32,
+    #[arg(short = 'f', long = "file-info", help = "Provides information about a file")]
+    file_info: bool,
 }
 
 fn main() {
@@ -77,7 +80,11 @@ fn main() {
                 println!("{}", path.display());
                 recursive_listing(path, cli.depth, 0, String::from(""), cli.recursive_hidden);
             } else {
-                print_table(&path, cli.all, cli.hiddenonly);
+                let data = get_data(&path, cli.all, cli.hiddenonly);
+                match data {
+                    Ok(res) => print_table(res),
+                    Err(msg) => println!("{msg}")
+                }
             }
         } else {
             println!("{}", "Path does not exist".red());
@@ -85,6 +92,20 @@ fn main() {
     } else {
         println!("{}", "Error Reading the Directory".red());
     }
+}
+
+pub fn convert(num: f64) -> String {
+  let negative = if num.is_sign_positive() { "" } else { "-" };
+  let num = num.abs();
+  let units = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  if num < 1_f64 {
+      return format!("{}{} {}", negative, num, "B");
+  }
+  let delimiter = 1024_f64;
+  let exponent = cmp::min((num.ln() / delimiter.ln()).floor() as i32, (units.len() - 1) as i32);
+  let pretty_bytes = format!("{:.2}", num / delimiter.powi(exponent)).parse::<f64>().unwrap() * 1_f64;
+  let unit = units[exponent as usize];
+  format!("{}{} {}", negative, pretty_bytes, unit)
 }
 
 fn get_files(path: &Path) -> Vec<FileEntry> {
@@ -100,7 +121,7 @@ fn get_files(path: &Path) -> Vec<FileEntry> {
     data
 }
 
-fn print_table(path: &Path, all:bool, hiddenonly: bool) {
+fn get_data(path: &Path, all:bool, hiddenonly: bool) -> Result<Vec<FileEntry>, String> {
     let mut get_files = get_files(&path);
     if hiddenonly {
         let get_files_iter: IntoIter<FileEntry> = get_files.into_iter();
@@ -110,9 +131,12 @@ fn print_table(path: &Path, all:bool, hiddenonly: bool) {
         get_files = leave_hidden(get_files_iter);
     }
     if get_files.len() == 0 {
-        println!("No Files or Directories found!");
-        return;
+        return Err(String::from("No Files or Directories found!"));
     }
+    return Ok(get_files);
+}
+
+fn print_table(get_files: Vec<FileEntry>) {
     let mut table = Table::new(&get_files);
     table.with(Style::rounded());
     table.modify(Columns::first(), Color::FG_BRIGHT_CYAN);
@@ -135,7 +159,7 @@ fn map_dir_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, dir_index: &mut u
                     .into_string()
                     .unwrap_or("unknown name".into()),
                 e_type: EntryType::Dir,
-                len_bytes: meta.len(),
+                len_bytes: convert(meta.len() as f64),
                 modified: if let Ok(mod_time) = meta.modified() {
                     let date: DateTime<Utc> = mod_time.into();
                     format!("{}", date.format("%a %b %e %Y"))
@@ -160,7 +184,7 @@ fn map_file_data(file: fs::DirEntry, data: &mut Vec<FileEntry>) {
                     .into_string()
                     .unwrap_or("unknown name".into()),
                 e_type: EntryType::File,
-                len_bytes: meta.len(),
+                len_bytes: convert(meta.len() as f64),
                 modified: if let Ok(mod_time) = meta.modified() {
                     let date: DateTime<Utc> = mod_time.into();
                     format!("{}", date.format("%a %b %e %Y"))
@@ -207,4 +231,9 @@ fn recursive_listing(path: PathBuf, depth:u32, count: u32, head: String, show_hi
             }
         }
     }
+}
+
+fn getting_file_info(path: &Path) -> Vec<FileEntry> {
+    let mut res: Vec<FileEntry> = get_files(path);
+    res
 }
