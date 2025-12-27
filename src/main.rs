@@ -1,5 +1,4 @@
 use chrono::{DateTime, Local};
-use std::cmp;
 use clap::{Parser, builder::OsStr};
 use owo_colors::OwoColorize;
 use serde::Serialize;
@@ -13,6 +12,9 @@ use tabled::{
         Color, Modify, Style, object::{Columns, Rows}
     },
 };
+
+mod dependencies;
+use crate::dependencies::find_length;
 
 #[derive(Debug, Display, Serialize)]
 enum EntryType {
@@ -103,21 +105,6 @@ fn main() {
     }
 }
 
-// To convert the length of the files from Byte information to respective file length unit
-pub fn convert(num: f64) -> String {
-  let negative = if num.is_sign_positive() { "" } else { "-" };
-  let num = num.abs();
-  let units = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-  if num < 1_f64 {
-      return format!("{}{} {}", negative, num, "B");
-  }
-  let delimiter = 1024_f64;
-  let exponent = cmp::min((num.ln() / delimiter.ln()).floor() as i32, (units.len() - 1) as i32);
-  let pretty_bytes = format!("{:.2}", num / delimiter.powi(exponent)).parse::<f64>().unwrap() * 1_f64;
-  let unit = units[exponent as usize];
-  format!("{}{} {}", negative, pretty_bytes, unit)
-}
-
 fn get_files(path: &Path) -> Vec<FileEntry> {
     let mut data = Vec::default();
     if let Ok(read_dir) = fs::read_dir(path) {
@@ -172,7 +159,7 @@ fn map_dir_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, dir_index: &mut u
                     .into_string()
                     .unwrap_or("unknown name".into()),
                 e_type: EntryType::Dir,
-                len_bytes: convert(meta.len() as f64),
+                len_bytes: find_length(&file.path()),
                 modified: if let Ok(mod_time) = meta.modified() {
                     let date: DateTime<Local> = mod_time.into();
                     format!("{}", date.format("%b %e %Y %H:%M"))
@@ -198,7 +185,7 @@ fn map_file_data(file: fs::DirEntry, data: &mut Vec<FileEntry>) {
                     .into_string()
                     .unwrap_or("unknown name".into()),
                 e_type: EntryType::File,
-                len_bytes: convert(meta.len() as f64),
+                len_bytes: find_length(&file.path()),
                 modified: if let Ok(mod_time) = meta.modified() {
                     let date: DateTime<Local> = mod_time.into();
                     format!("{}", date.format("%b %e %Y %H:%M"))
@@ -259,7 +246,7 @@ fn getting_file_info(path: &Path) -> Result<Vec<FileEntry>, String> {
         res.push(FileEntry {
             name: path.file_name().unwrap_or(&OsStr::from("File Not Found!")).to_owned().into_string().expect("File Not Found!"),
             e_type: EntryType::File,
-            len_bytes: convert(meta.len() as f64),
+            len_bytes: find_length(&path),
             modified: if let Ok(mod_time) = meta.modified() {
                 let date: DateTime<Local> = mod_time.into();
                 format!("{}", date.format("%b %e %Y %H:%M"))

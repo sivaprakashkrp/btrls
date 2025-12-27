@@ -1,11 +1,11 @@
 # `btrls`
-A tabled `ls` command developed in Rust with color-coded columns. The basic functionality of the `ls` command has been implemented in the release `v1.0.0`. 
+A tabled `ls` command developed in Rust with color-coded columns. The basic functionality of the `ls` command has been implemented in the release `v1.1.0`. 
 
 With `btrls` you can see the files and directories in a tabled format with the option to export the details of files and directories as **JSON** with the `--json` or `-j` flag.
 
-![A sample output image](./images/btrls-sample.png)
+![A sample output image of `btrls` command](./images/btrls-sample.png)
 
-## Building the application
+## Building the applicationv
 Clone the Repository. Make sure that you have `rustc` and `cargo` installed on you system. Then run the following command:
 ```bash
 cargo build -r
