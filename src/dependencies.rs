@@ -33,7 +33,7 @@ where
 }
 
 // To convert the length of the files from Byte information to respective file length unit
-fn convert(num: f64) -> String {
+pub fn convert(num: f64) -> String {
   let negative = if num.is_sign_positive() { "" } else { "-" };
   let num = num.abs();
   let units = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
@@ -47,7 +47,13 @@ fn convert(num: f64) -> String {
   format!("{}{} {}", negative, pretty_bytes, unit)
 }
 
-pub fn find_length(path: &Path) -> String {
-    let bytes = get_size(path).unwrap_or(0_u64);
+pub fn find_length(path: &Path, directory_size: bool) -> String {
+    let metadata = path.symlink_metadata().unwrap();
+    let mut bytes: u64 = metadata.len();
+    if directory_size && metadata.is_dir() {
+        bytes = get_size(path).unwrap_or(0_u64);
+    } else if !directory_size && metadata.is_dir() {
+        return String::from("...");
+    }
     convert(bytes as f64)
 }

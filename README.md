@@ -1,12 +1,12 @@
 # `btrls`
-A tabled `ls` command developed in Rust with color-coded columns. The basic functionality of the `ls` command has been implemented in the release `v1.1.0`. 
+A tabled `ls` command developed in Rust with color-coded columns. The basic functionality of the `ls` command has been implemented in the release `v1.1.1`. 
 
 With `btrls` you can see the files and directories in a tabled format with the option to export the details of files and directories as **JSON** with the `--json` or `-j` flag.
 
 ![A sample output image of `btrls` command](./images/btrls-sample.png)
 
 ## Building the applicationv
-Clone the Repository. Make sure that you have `rustc` and `cargo` installed on you system. Then run the following command:
+Clone the Repository. Make sure that you have `rustup` and `cargo` installed on you system. Then run the following command:
 ```bash
 cargo build -r
 ```
@@ -15,7 +15,7 @@ Then you can find the application in the `<Path-to-repo>/target/release/btrls` o
 ## Installation
 Please refer to the releases section for the below mentioned files.
 ### For Windows Systems
-If you are on a Windows Machine, you can download the `btrls-v1.0.0.exe` executable file and add the location of the downloaded application to the System or User Environment Variables.
+If you are on a Windows Machine, you can download the `btrls-v1.1.1.exe` executable file and add the location of the downloaded application to the System or User Environment Variables.
 
 And you can also compile the application from source by either downloading an archive or cloning the repository then building the application with `cargo`.
 
@@ -77,6 +77,12 @@ Sets the recursion depth for the recursive listings. The default value of depth 
 -f, --file-info
 ```
 Provides information about a single file
+
+### View Size of Directories (Recursive)
+```bash
+-s, --directory-size
+```
+Recursively calculates the size of directories (May take time)
 
 ### Help
 ```bash

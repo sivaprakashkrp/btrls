@@ -14,7 +14,7 @@ use tabled::{
 };
 
 mod dependencies;
-use crate::dependencies::find_length;
+use crate::dependencies::{convert, find_length};
 
 #[derive(Debug, Display, Serialize)]
 enum EntryType {
@@ -63,6 +63,8 @@ struct CLI {
     depth: u32,
     #[arg(short = 'f', long = "file-info", help = "Provides information about a file")]
     file_info: bool,
+    #[arg(short = 's', long = "directory-size", help = "Recursively calculates the size of directories (May take time)")]
+    directory_size: bool,
 }
 
 // Files that start with "." but are not considered hidden
@@ -76,7 +78,7 @@ fn main() {
     if let Ok(does_exist) = fs::exists(&path) {
         if does_exist {
             if cli.json {
-                let get_files = get_files(&path);
+                let get_files = get_files(&path, false);
                 println!(
                     "{}",
                     serde_json::to_string(&get_files).unwrap_or("Cannot Parse JSON".to_string())
@@ -91,7 +93,7 @@ fn main() {
                     Err(msg) => println!("{msg}")
                 }
             } else {
-                let data = get_data(&path, cli.all, cli.hiddenonly);
+                let data = get_data(&path, cli.all, cli.hiddenonly, cli.directory_size);
                 match data {
                     Ok(res) => print_table(res),
                     Err(msg) => println!("{msg}")
@@ -105,13 +107,13 @@ fn main() {
     }
 }
 
-fn get_files(path: &Path) -> Vec<FileEntry> {
+fn get_files(path: &Path, directory_size: bool) -> Vec<FileEntry> {
     let mut data = Vec::default();
     if let Ok(read_dir) = fs::read_dir(path) {
         let mut dir_index: usize = 0;
         for entry in read_dir {
             if let Ok(file) = entry {
-                map_data(file, &mut data, &mut dir_index);
+                map_data(file, &mut data, &mut dir_index, directory_size);
             }
         }
     }
@@ -119,8 +121,8 @@ fn get_files(path: &Path) -> Vec<FileEntry> {
 }
 
 // To get the data about the files and directories in the given path
-fn get_data(path: &Path, all:bool, hiddenonly: bool) -> Result<Vec<FileEntry>, String> {
-    let mut get_files = get_files(&path);
+fn get_data(path: &Path, all:bool, hiddenonly: bool, directory_size: bool) -> Result<Vec<FileEntry>, String> {
+    let mut get_files = get_files(&path, directory_size);
     if hiddenonly {
         let get_files_iter: IntoIter<FileEntry> = get_files.into_iter();
         get_files = only_hidden(get_files_iter);
@@ -150,7 +152,7 @@ fn print_table(get_files: Vec<FileEntry>) {
 }
 
 // To collect data about directories and map them into a vector so that they can be displayed in table
-fn map_dir_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, dir_index: &mut usize) -> fs::DirEntry {
+fn map_dir_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, dir_index: &mut usize, directory_size: bool) -> fs::DirEntry {
     if let Ok(meta) = fs::metadata(&file.path()) {
         if meta.is_dir() {
             data.insert(*dir_index, FileEntry {
@@ -159,7 +161,7 @@ fn map_dir_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, dir_index: &mut u
                     .into_string()
                     .unwrap_or("unknown name".into()),
                 e_type: EntryType::Dir,
-                len_bytes: find_length(&file.path()),
+                len_bytes: find_length(&file.path(), directory_size),
                 modified: if let Ok(mod_time) = meta.modified() {
                     let date: DateTime<Local> = mod_time.into();
                     format!("{}", date.format("%b %e %Y %H:%M"))
@@ -185,7 +187,7 @@ fn map_file_data(file: fs::DirEntry, data: &mut Vec<FileEntry>) {
                     .into_string()
                     .unwrap_or("unknown name".into()),
                 e_type: EntryType::File,
-                len_bytes: find_length(&file.path()),
+                len_bytes: find_length(&file.path(), false),
                 modified: if let Ok(mod_time) = meta.modified() {
                     let date: DateTime<Local> = mod_time.into();
                     format!("{}", date.format("%b %e %Y %H:%M"))
@@ -201,8 +203,8 @@ fn map_file_data(file: fs::DirEntry, data: &mut Vec<FileEntry>) {
 
 // Calling map_dir_data and map_file_data
 // This order of calling the methods is what displays Directories first, then the files in the table
-fn map_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, dir_index: &mut usize) {
-    let re_arg = map_dir_data(file, data, dir_index);
+fn map_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, dir_index: &mut usize, directory_size: bool) {
+    let re_arg = map_dir_data(file, data, dir_index, directory_size);
     map_file_data(re_arg, data);
 }
 
@@ -246,7 +248,7 @@ fn getting_file_info(path: &Path) -> Result<Vec<FileEntry>, String> {
         res.push(FileEntry {
             name: path.file_name().unwrap_or(&OsStr::from("File Not Found!")).to_owned().into_string().expect("File Not Found!"),
             e_type: EntryType::File,
-            len_bytes: find_length(&path),
+            len_bytes: convert(meta.len() as f64),
             modified: if let Ok(mod_time) = meta.modified() {
                 let date: DateTime<Local> = mod_time.into();
                 format!("{}", date.format("%b %e %Y %H:%M"))
