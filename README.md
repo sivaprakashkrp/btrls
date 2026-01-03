@@ -5,7 +5,7 @@ With `btrls` you can see the files and directories in a tabled format with the o
 
 ![A sample output image of `btrls` command](./images/btrls-sample.png)
 
-## Building the applicationv
+## Building the application
 Clone the Repository. Make sure that you have `rustup` and `cargo` installed on you system. Then run the following command:
 ```bash
 cargo build -r
