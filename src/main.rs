@@ -78,7 +78,7 @@ fn main() {
     if let Ok(does_exist) = fs::exists(&path) {
         if does_exist {
             if cli.json {
-                let get_files = get_files(&path, false);
+                let get_files = get_data(&path, cli.all, cli.hiddenonly, cli.directory_size);
                 println!(
                     "{}",
                     serde_json::to_string(&get_files).unwrap_or("Cannot Parse JSON".to_string())
