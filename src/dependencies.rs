@@ -47,13 +47,16 @@ pub fn convert(num: f64) -> String {
   format!("{}{} {}", negative, pretty_bytes, unit)
 }
 
-pub fn find_length(path: &Path, directory_size: bool) -> String {
+pub fn find_length(path: &Path, directory_size: bool, byte_size: bool) -> String {
     let metadata = path.symlink_metadata().unwrap();
     let mut bytes: u64 = metadata.len();
     if directory_size && metadata.is_dir() {
         bytes = get_size(path).unwrap_or(0_u64);
     } else if !directory_size && metadata.is_dir() {
         return String::from("...");
+    }
+    if byte_size {
+        return bytes.to_string();
     }
     convert(bytes as f64)
 }
