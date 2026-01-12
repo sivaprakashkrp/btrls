@@ -1,3 +1,5 @@
+// !TODO: To provide a way to configure colours in btrls with a toml file
+
 use chrono::{DateTime, Local};
 use clap::{Parser, builder::OsStr};
 use owo_colors::OwoColorize;
