@@ -4,7 +4,7 @@ cargo build --release
 
 path="$(pwd)/target/release"
 
-BASHRC_FILE="$HOME/.bashrc"
+BASHRC_FILE="~/.bashrc"
 
 # Check if the path already exists in .bashrc to prevent duplicates
 if ! grep -q "export PATH=.*$path" "$BASHRC_FILE"; then
