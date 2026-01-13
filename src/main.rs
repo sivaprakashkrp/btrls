@@ -2,6 +2,7 @@
 
 use chrono::{DateTime, Local};
 use clap::{Parser, builder::OsStr};
+use is_executable::IsExecutable;
 use owo_colors::OwoColorize;
 use serde::Serialize;
 use std::{
@@ -11,14 +12,15 @@ use strum::Display;
 use tabled::{
     Table, Tabled,
     settings::{
-        Color, Modify, Style, object::{Columns, Rows}
+        Color, Modify, Style, object::{Cell, Columns, Rows}
     },
 };
+use hf::is_hidden;
 
 mod dependencies;
 use crate::dependencies::{convert, find_length};
 
-#[derive(Debug, Display, Serialize)]
+#[derive(Debug, Display, Serialize, PartialEq, Eq)]
 enum EntryType {
     File,
     Dir,
@@ -37,7 +39,9 @@ struct FileEntry {
     #[tabled{rename="Read_Only"}]
     read_only: bool,
     #[tabled(skip)]
-    hidden: bool
+    hidden: bool,
+    #[tabled(skip)]
+    is_exec: bool,
 }
 
 #[derive(Debug, Parser)]
@@ -148,6 +152,12 @@ fn print_table(get_files: Vec<FileEntry>) {
     table.modify(Columns::last(), Color::FG_BRIGHT_YELLOW);
     table.modify(Rows::first(), Color::FG_BRIGHT_MAGENTA);
     for (i, entry) in get_files.iter().enumerate() {
+        if entry.e_type == EntryType::Dir && !entry.hidden {
+            table.with(Modify::new(Cell::new(i+1, 1)).with(Color::rgb_fg(10, 10, 225)));
+        }
+        if entry.is_exec {
+            table.with(Modify::new(Cell::new(i+1,1)).with(Color::rgb_fg(10, 225, 10)));
+        }
         if entry.hidden {
             table.with(Modify::new(Rows::new(i+1..i+2)).with(Color::rgb_fg(128, 128, 128)));
         }
@@ -173,7 +183,8 @@ fn map_dir_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, dir_index: &mut u
                     String::default()
                 },
                 read_only: meta.permissions().readonly(),
-                hidden: file.file_name().into_string().unwrap().starts_with(".")
+                hidden: is_hidden(&file.path()).unwrap_or(false),
+                is_exec: file.path().is_executable(),
             });
             *dir_index += 1;
         }
@@ -199,7 +210,8 @@ fn map_file_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, byte_size: bool)
                     String::default()
                 },
                 read_only: meta.permissions().readonly(),
-                hidden: file.file_name().into_string().unwrap().starts_with(".")
+                hidden: is_hidden(&file.path()).unwrap_or(false),
+                is_exec: file.path().is_executable(),
             });
         }
     }
@@ -229,11 +241,11 @@ fn recursive_listing(path: PathBuf, depth:u32, count: u32, head: String, show_hi
     if let Ok(read_dir) = fs::read_dir(&path) {
         for entry in read_dir {
             if let Ok(file) = entry {
-                if !show_hidden && file.file_name().into_string().unwrap_or("default".into()).starts_with(".") {
+                if !show_hidden && is_hidden(&file.path()).unwrap_or(false) {
                     continue;
                 }
                 if let Ok(meta) = fs::metadata(file.path()) {
-                    println!("{}├──> {}", head, file.file_name().into_string().unwrap_or("Cannot unwrap filename".into()));
+                    println!("{}├──> {}{}", head, if file.path().is_executable() {"*"} else {""}, file.file_name().into_string().unwrap_or("Cannot unwrap filename".into()));
                     if meta.is_dir() {
                         if count < depth {
                             recursive_listing(file.path(), depth, count + 1, format!("{}│    ", head), show_hidden);
@@ -260,7 +272,8 @@ fn getting_file_info(path: &Path) -> Result<Vec<FileEntry>, String> {
                 String::default()
             },
             read_only: meta.permissions().readonly(),
-            hidden: path.file_name().unwrap_or(&OsStr::from("File Not Found!")).to_owned().into_string().expect("File Not Found!").starts_with(".")
+            hidden: is_hidden(&path).unwrap_or(false),
+            is_exec: path.is_executable(),
         })
     }
     if res[0].name == "File Not Found!" {
