@@ -1,5 +1,5 @@
 # `btrls`
-A tabled `ls` command developed in Rust with color-coded columns. The basic functionality of the `ls` command has been implemented in the release `v1.1.1`. 
+A tabled `ls` command developed in Rust with color-coded columns. Some of the basic functionality of the `ls` command has been implemented in the release `v1.2.0` with a touch to the aesthetics of the output. 
 
 With `btrls` you can see the files and directories in a tabled format with the option to export the details of files and directories as **JSON** with the `--json` or `-j` flag.
 
@@ -15,7 +15,7 @@ Then you can find the application in the `<Path-to-repo>/target/release/btrls` o
 ## Installation
 Please refer to the releases section for the below mentioned files.
 ### For Windows Systems
-If you are on a Windows Machine, you can download the `btrls-v1.1.1.exe` executable file and add the location of the downloaded application to the System or User Environment Variables.
+If you are on a Windows Machine, you can download the `btrls-v1.2.0.exe` executable file and add the location of the downloaded application to the System or User Environment Variables.
 
 And you can also compile the application from source by either downloading an archive or cloning the repository then building the application with `cargo`.
 
@@ -84,6 +84,12 @@ Provides information about a single file
 ```
 Recursively calculates the size of directories (May take time)
 
+### Size of Directories in Bytes
+```bash
+-b, --byte-size
+```
+Displays File and Directory sizes in Bytes
+
 ### Help
 ```bash
 -h, --help
@@ -95,6 +101,25 @@ Print help (see a summary with `-h`, detailed help with `--help`)
 -V, --version
 ```  
 Prints version of btrls
+
+## Configuration
+
+The colors in `btrls` can be configured from the `btrls-v1.2.0` build. You can add a `btrls.toml` file at `\Applications\btrls.toml` if you are in **Windows** or at `~/.config/btrls.toml` if you are in **Linux** System.
+
+A sample of the configuration file `btrls.toml` is given here for you reference:
+
+```toml
+title_row = "#fda434"
+leading_col = "#239324"
+trailing_col = "#24acdd"
+executable = "#425462"
+directory = "#232451"
+hidden = "#002432"
+```
+
+Each key takes a color code (hex values). Enclose the Hex color code in string quotes. Don't forget to add `#` in the color codes.
+
+**Note:** This feature has been tested in **Windows** but is yet to be tested on **Linux** Platform and will be soon be tested on it.
 
 ---
 

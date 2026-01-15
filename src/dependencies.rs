@@ -15,7 +15,7 @@ use tabled::{
 use hf::is_hidden;
 
 // Importing from file_size_deps.rs
-use crate::file_size_deps::{convert, find_length};
+use crate::{config_deps::reading_config, file_size_deps::{convert, find_length}};
 
 #[derive(Debug, Display, Serialize, PartialEq, Eq)]
 enum EntryType {
@@ -76,19 +76,20 @@ pub fn get_data(path: &Path, all:bool, hiddenonly: bool, directory_size: bool, b
 // To print the table to display
 pub fn print_table(get_files: Vec<FileEntry>) {
     let mut table = Table::new(&get_files);
+    let config = reading_config();
     table.with(Style::rounded());
-    table.modify(Columns::first(), Color::FG_BRIGHT_CYAN);
-    table.modify(Columns::last(), Color::FG_BRIGHT_YELLOW);
-    table.modify(Rows::first(), Color::FG_BRIGHT_MAGENTA);
+    table.modify(Columns::first(), Color::rgb_fg(config.leading_col.red, config.leading_col.green, config.leading_col.blue));
+    table.modify(Columns::last(), Color::rgb_fg(config.trailing_col.red, config.trailing_col.green, config.trailing_col.blue));
+    table.modify(Rows::first(), Color::rgb_fg(config.title_row.red, config.title_row.green, config.title_row.blue));
     for (i, entry) in get_files.iter().enumerate() {
         if entry.e_type == EntryType::Dir && !entry.hidden {
-            table.with(Modify::new(Cell::new(i+1, 1)).with(Color::rgb_fg(10, 10, 225)));
+            table.with(Modify::new(Cell::new(i+1, 1)).with(Color::rgb_fg(config.directory.red, config.directory.green, config.directory.blue)));
         }
         if entry.is_exec {
-            table.with(Modify::new(Cell::new(i+1,1)).with(Color::rgb_fg(10, 225, 10)));
+            table.with(Modify::new(Cell::new(i+1,1)).with(Color::rgb_fg(config.executable.red, config.executable.green, config.executable.blue)));
         }
         if entry.hidden {
-            table.with(Modify::new(Rows::new(i+1..i+2)).with(Color::rgb_fg(128, 128, 128)));
+            table.with(Modify::new(Rows::new(i+1..i+2)).with(Color::rgb_fg(config.hidden.red, config.hidden.green, config.hidden.blue)));
         }
     }
     println!("{}", table);

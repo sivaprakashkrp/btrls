@@ -1,5 +1,3 @@
-// !TODO: To provide a way to configure colours in btrls with a toml file
-
 use clap::{Parser};
 use owo_colors::OwoColorize;
 use std::{
@@ -10,7 +8,7 @@ use std::{
 mod dependencies;
 mod file_size_deps;
 mod config_deps;
-use crate::{dependencies::{get_data, getting_file_info, print_table, recursive_listing}, file_size_deps::{convert, find_length}};
+use crate::{dependencies::{get_data, getting_file_info, print_table, recursive_listing}};
 
 
 #[derive(Debug, Parser)]
