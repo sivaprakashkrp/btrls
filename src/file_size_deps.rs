@@ -42,21 +42,24 @@ pub fn convert(num: f64) -> String {
   }
   let delimiter = 1024_f64;
   let exponent = cmp::min((num.ln() / delimiter.ln()).floor() as i32, (units.len() - 1) as i32);
-  let pretty_bytes = format!("{:.2}", num / delimiter.powi(exponent)).parse::<f64>().unwrap() * 1_f64;
+  let pretty_bytes = format!("{:.2}", num / delimiter.powi(exponent)).parse::<f64>().unwrap_or(-1.0) * 1_f64;
   let unit = units[exponent as usize];
   format!("{}{} {}", negative, pretty_bytes, unit)
 }
 
 pub fn find_length(path: &Path, directory_size: bool, byte_size: bool) -> String {
-    let metadata = path.symlink_metadata().unwrap();
-    let mut bytes: u64 = metadata.len();
-    if directory_size && metadata.is_dir() {
-        bytes = get_size(path).unwrap_or(0_u64);
-    } else if !directory_size && metadata.is_dir() {
-        return String::from("...");
+    if let Ok(metadata) = path.symlink_metadata() {
+        let mut bytes: u64 = metadata.len();
+        if directory_size && metadata.is_dir() {
+            bytes = get_size(path).unwrap_or(0_u64);
+        } else if !directory_size && metadata.is_dir() {
+            return String::from("...");
+        }
+        if byte_size {
+            return bytes.to_string();
+        }
+        convert(bytes as f64)
+    } else {
+        String::from("Nan B")
     }
-    if byte_size {
-        return bytes.to_string();
-    }
-    convert(bytes as f64)
 }

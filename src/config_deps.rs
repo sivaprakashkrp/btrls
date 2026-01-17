@@ -13,12 +13,12 @@ pub struct RGB {
 // SettingsFile is the struct used to read data from the configuration file
 #[derive(Debug, Deserialize, Clone)]
 struct SettingsFile {
-    title_row: String,
-    leading_col: String,
-    trailing_col: String,
-    executable: String,
-    directory: String,
-    hidden: String,
+    title_row: Option<String>,
+    leading_col: Option<String>,
+    trailing_col: Option<String>,
+    executable: Option<String>,
+    directory: Option<String>,
+    hidden: Option<String>,
 }
 
 impl SettingsFile {
@@ -43,17 +43,15 @@ pub struct ColorConfig {
     pub hidden: RGB,
 }
 
-fn reading_config_file() -> Result<SettingsFile, Box<dyn std::error::Error>> {
+fn reading_config_file(config_file: String) -> Result<SettingsFile, Box<dyn std::error::Error>> {
     let builder = Config::builder();
-    #[cfg(target_os = "windows")]
-    let read_settings: SettingsFile = builder.add_source(File::with_name("\\Applications\\btrls.toml")).build()?.try_deserialize()?;
-    #[cfg(target_os = "linux")]
-    let read_settings: SettingsFile = builder.add_source(File::with_name("~/.config/btrls.toml")).build()?.try_deserialize()?;
+    let read_settings: SettingsFile = builder.add_source(File::with_name(&config_file)).build()?.try_deserialize()?;
     Ok(read_settings)
 }
 
 // Handling all error at once and unwrapping the RGB color value
-fn str_to_hex(hex: String) -> RGB {
+fn str_to_hex(input: Option<String>) -> RGB {
+    let hex = input.unwrap_or(String::from("#101010"));
     str_to_hex_converter(&hex).unwrap_or(RGB{ red: 10, blue: 10, green: 10})
 }
 
@@ -67,8 +65,8 @@ fn str_to_hex_converter(hex: &str) -> Result<RGB, std::num::ParseIntError> {
 }
 
 // Creates the ColorConfig which can by used to create colors for text in btrls
-pub fn reading_config() -> ColorConfig {
-    if let Ok(file_config) = reading_config_file() {
+pub fn reading_config(config_file: String) -> ColorConfig {
+    if let Ok(file_config) = reading_config_file(config_file) {
         // println!("Configuration loaded");
         file_config.to_color_config()
     } else {

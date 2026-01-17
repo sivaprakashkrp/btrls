@@ -40,6 +40,8 @@ struct CLI {
     directory_size: bool,
     #[arg(short='b', long = "byte-size", help = "Displays File and Directory sizes in Bytes")]
     byte_size: bool,
+    #[arg(short='c', long = "config", help = "Link to a custom btrls.toml config file")]
+    config_file: Option<String>,
 }
 
 
@@ -48,6 +50,12 @@ fn main() {
     let cli = CLI::parse();
 
     let path = cli.path.unwrap_or(PathBuf::from("."));
+    
+    #[cfg(target_os = "windows")]
+    let config_file = cli.config_file.unwrap_or(String::from("\\Applications\\btrls.toml"));
+    #[cfg(target_os = "linux")]
+    let config_file = cli.config_file.unwrap_or(String::from("~/.config/btrls.toml"));
+    
 
     if let Ok(does_exist) = fs::exists(&path) {
         if does_exist {
@@ -63,13 +71,13 @@ fn main() {
             } else if cli.file_info {
                 let data = getting_file_info(&path);
                 match data {
-                    Ok(res) => print_table(res),
+                    Ok(res) => print_table(config_file, res),
                     Err(msg) => println!("{}", msg.red())
                 }
             } else {
                 let data = get_data(&path, cli.all, cli.hiddenonly, cli.directory_size, cli.byte_size);
                 match data {
-                    Ok(res) => print_table(res),
+                    Ok(res) => print_table(config_file, res),
                     Err(msg) => println!("{}", msg.red())
                 }
             }

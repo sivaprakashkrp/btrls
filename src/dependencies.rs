@@ -74,9 +74,9 @@ pub fn get_data(path: &Path, all:bool, hiddenonly: bool, directory_size: bool, b
 }
 
 // To print the table to display
-pub fn print_table(get_files: Vec<FileEntry>) {
+pub fn print_table(config_file: String, get_files: Vec<FileEntry>) {
     let mut table = Table::new(&get_files);
-    let config = reading_config();
+    let config = reading_config(config_file);
     table.with(Style::rounded());
     table.modify(Columns::first(), Color::rgb_fg(config.leading_col.red, config.leading_col.green, config.leading_col.blue));
     table.modify(Columns::last(), Color::rgb_fg(config.trailing_col.red, config.trailing_col.green, config.trailing_col.blue));
