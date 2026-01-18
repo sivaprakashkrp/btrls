@@ -1,5 +1,4 @@
 use config::Config;
-#[cfg(target_os = "windows")]
 use config::File;
 use serde::Deserialize;
 
