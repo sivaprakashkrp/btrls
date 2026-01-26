@@ -90,6 +90,12 @@ Recursively calculates the size of directories (May take time)
 ```
 Displays File and Directory sizes in Bytes
 
+### Custom Configuration file
+```bash
+-c <PATH>, --config <PATH>
+```
+Imports colors from the `btrls.toml` file specified in `<PATH>`.
+
 ### Help
 ```bash
 -h, --help
@@ -104,7 +110,9 @@ Prints version of btrls
 
 ## Configuration
 
-The colors in `btrls` can be configured from the `btrls-v1.2.0` build. You can add a `btrls.toml` file at `\Applications\btrls.toml` if you are in **Windows** or at `~/.config/btrls.toml` if you are in **Linux** System.
+The colors in `btrls` can be configured from the `btrls-v1.2.0` build. You can add a `btrls.toml` file at `D:\Applications\btrls.toml` if you are in **Windows** or at `~/.config/btrls.toml` if you are in **Linux** System.
+
+You can add a custom configuration file `btrls.toml` at any of the above given locations or use the `-c` flag to pass the location to your custom configuration file while calling `btrls`.
 
 A sample of the configuration file `btrls.toml` is given here for you reference:
 

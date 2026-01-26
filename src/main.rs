@@ -52,7 +52,7 @@ fn main() {
     let path = cli.path.unwrap_or(PathBuf::from("."));
     
     #[cfg(target_os = "windows")]
-    let config_file = cli.config_file.unwrap_or(String::from("\\Applications\\btrls.toml"));
+    let config_file = cli.config_file.unwrap_or(String::from("D:\\Applications\\btrls.toml"));
     #[cfg(target_os = "linux")]
     let config_file = cli.config_file.unwrap_or(String::from("~/.config/btrls.toml"));
     
