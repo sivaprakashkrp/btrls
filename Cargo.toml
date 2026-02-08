@@ -3,6 +3,9 @@ name = "btrls"
 authors = ["Sivaprakash P"]
 version = "1.2.0"
 edition = "2024"
+repository = "https://github.com/sivaprakashkrp/btrls"
+license = "GPL2.0"
+description = "A tabled ls command written in Rust with the option to get the details of a directory or file as JSON"
 
 [dependencies]
 clap = {version = "4.5.39", features = ["derive"]}

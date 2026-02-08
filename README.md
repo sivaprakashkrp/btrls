@@ -22,7 +22,7 @@ If you are on a Windows Machine, you can download the `btrls-v1.2.0.exe` executa
 
 And you can also compile the application from source by either downloading an archive or cloning the repository then building the application with `cargo`.
 
-### For Arch Linux Systems
+### For Arch Linux (x86_64) Systems
 
 The version v1.2.0 of `btrls` is now available in the [Arch User Repository](https://aur.archlinux.org/packages/btrls). You can install `btrls` with the command 
 ```bash
