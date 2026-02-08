@@ -1,4 +1,7 @@
 # `btrls`
+
+[![AUR Package](https://img.shields.io/aur/version/btrls)](https://aur.archlinux.org/packages/btrls)
+
 A tabled `ls` command developed in Rust with color-coded columns. Some of the basic functionality of the `ls` command has been implemented in the release `v1.2.0` with a touch to the aesthetics of the output. 
 
 With `btrls` you can see the files and directories in a tabled format with the option to export the details of files and directories as **JSON** with the `--json` or `-j` flag.
@@ -18,6 +21,13 @@ Please refer to the releases section for the below mentioned files.
 If you are on a Windows Machine, you can download the `btrls-v1.2.0.exe` executable file and add the location of the downloaded application to the System or User Environment Variables.
 
 And you can also compile the application from source by either downloading an archive or cloning the repository then building the application with `cargo`.
+
+### For Arch Linux Systems
+
+The version v1.2.0 of `btrls` is now available in the [Arch User Repository](https://aur.archlinux.org/packages/btrls). You can install `btrls` with the command 
+```bash
+yay -S btrls
+```
 
 ### For Unix/Linux Systems
 If you are on a Linux or Mac Machine, you can download any of the archives from the releases or clone the repository and run the `install.sh` script.
