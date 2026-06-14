@@ -100,10 +100,7 @@ fn map_dir_data(file: fs::DirEntry, data: &mut Vec<FileEntry>, dir_index: &mut u
     if let Ok(meta) = fs::metadata(&file.path()) {
         if meta.is_dir() {
             data.insert(*dir_index, FileEntry {
-                name: file
-                    .file_name()
-                    .into_string()
-                    .unwrap_or("unknown name".into()),
+                name: format!("{}/", file.file_name().into_string().unwrap_or("unknown name".into())),
                 e_type: EntryType::Dir,
                 len_bytes: find_length(&file.path(), directory_size, byte_size),
                 modified: if let Ok(mod_time) = meta.modified() {
